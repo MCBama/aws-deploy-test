@@ -25,12 +25,16 @@ SECRET_KEY = '9!1ei(4bmqrf(xx0pbop$*^@@s^z%%%m(h9j9d=pts2w@sl%va'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost', 
+    'django-env.dqvs9c23eq.us-east-1.elasticbeanstalk.com'
+]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'awsdeploytest',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -118,3 +122,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'
