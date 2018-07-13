@@ -27,13 +27,19 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost', 
+    '.localhost', 
     'django-env.dqvs9c23eq.us-east-1.elasticbeanstalk.com'
+    '.django-env.dqvs9c23eq.us-east-1.elasticbeanstalk.com'
 ]
 
 
 # Application definition
 
+TENANT_MODEL = "awsdeploytest.Client" # app.Model
+DEFAULT_FILE_STORAGE = 'tenant_schemas.storage.TenantFileSystemStorage'
+
 INSTALLED_APPS = [
+    'tenant_schemas',
     'awsdeploytest',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,9 +47,32 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'awsdeploytest_app',
 ]
 
+SHARED_APPS = (
+    'tenant_schemas',  # mandatory, should always be before any django app
+    'awsdeploytest', # you must list the app where your tenant model resides in
+
+    'django.contrib.contenttypes',
+
+    # everything below here is optional
+    
+)
+
+TENANT_APPS = (
+    'django.contrib.contenttypes',
+
+    # your tenant-specific apps
+    'django.contrib.auth',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.admin',
+    'awsdeploytest_app',
+)
+
 MIDDLEWARE = [
+    'tenant_schemas.middleware.DefaultTenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,10 +106,18 @@ WSGI_APPLICATION = 'awsdeploytest.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
+DATABASE_ROUTERS = (
+    'tenant_schemas.routers.TenantSyncRouter',
+)
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'tenant_schemas.postgresql_backend',
+        'NAME': os.environ['RDS_DB_NAME'],
+        'USER': os.environ['RDS_USERNAME'],
+        'PASSWORD': os.environ['RDS_PASSWORD'],
+        'HOST': os.environ['RDS_HOSTNAME'],
+        'PORT': os.environ['RDS_PORT'],
     }
 }
 
