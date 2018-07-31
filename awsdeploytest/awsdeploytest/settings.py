@@ -26,13 +26,19 @@ SECRET_KEY = '9!1ei(4bmqrf(xx0pbop$*^@@s^z%%%m(h9j9d=pts2w@sl%va'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'localhost', 
-    '.localhost', 
-    'django-env.x3xttd26fv.us-east-1.elasticbeanstalk.com',
-    '.django-env.x3xttd26fv.us-east-1.elasticbeanstalk.com',
+    '*'
 ]
 
-
+# In settings.py
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("ec2-18-233-153-177.compute-1.amazonaws.com", 6379)],
+        },
+        "ROUTING": "awsdeploytest_app.routing.channel_routing",
+    },
+}
 # Application definition
 
 TENANT_MODEL = "awsdeploytest.Client" # app.Model
@@ -48,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'awsdeploytest_app',
+    'channels'
 ]
 
 SHARED_APPS = (
@@ -57,7 +64,7 @@ SHARED_APPS = (
     'django.contrib.contenttypes',
 
     # everything below here is optional
-    
+    'channels'
 )
 
 TENANT_APPS = (
@@ -110,16 +117,28 @@ DATABASE_ROUTERS = (
     'tenant_schemas.routers.TenantSyncRouter',
 )
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'tenant_schemas.postgresql_backend',
-        'NAME': os.environ['RDS_DB_NAME'],
-        'USER': os.environ['RDS_USERNAME'],
-        'PASSWORD': os.environ['RDS_PASSWORD'],
-        'HOST': os.environ['RDS_HOSTNAME'],
-        'PORT': os.environ['RDS_PORT'],
+if 'RDS_DB_NAME' in os.environ.keys():
+    DATABASES = {
+        'default': {
+            'ENGINE': 'tenant_schemas.postgresql_backend',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'tenant_schemas.postgresql_backend',
+            'NAME': "postgres",
+            'USER': "postgres",
+            'PASSWORD': "asdf1234",
+            'HOST': "127.0.0.1",
+            'PORT': "5432",
+        }
+    }
 
 
 # Password validation
